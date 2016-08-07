@@ -2,21 +2,16 @@ package main
 
 import (
   "allbooks/actions"
+  "allbooks/routing"
 )
 
-func AppRoutes () Routes {
-  return Routes{
-    Route{
-      "Index",
-      "GET",
-      "/",
-      actions.IndexAction,
+func AppRoutes () routing.Routes {
+  return routing.Routes{
+    routing.BasicRoute{
+      "Index", "GET", "/", actions.IndexAction,
     },
-    Route{
-      "Publishers",
-      "GET",
-      "/publishers",
-      actions.PublishersIndexAction,
-    },
+    routing.NewCollectionRoute(
+      "Publishers", "GET", "/publishers", actions.PublishersIndexAction,
+    ),
   }
 }

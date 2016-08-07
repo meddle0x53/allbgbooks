@@ -1,17 +1,12 @@
 package actions
 
 import (
-  "net/http"
-  "github.com/gorilla/context"
-  "database/sql"
   "allbooks/models"
-  "allbooks/decorators"
+  "allbooks/routing"
 )
 
-func PublishersIndexAction(w http.ResponseWriter, r *http.Request) {
-  db := context.Get(r, "dbConnection").(*sql.DB)
-  publishers := models.GetPublishers(db)
+func PublishersIndexAction(context *routing.CollectionContext) {
+  publishers := models.GetPublishers(context.Page, context.PerPage)
 
-  params := context.Get(r, "params").(*decorators.Params)
-  RenderJson(publishers, w, params.Pretty)
+  context.SetResponseData(publishers)
 }

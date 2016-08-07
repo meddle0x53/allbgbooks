@@ -5,6 +5,7 @@ import (
   "fmt"
   "log"
   "net/http"
+  "allbooks/routing"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
   bind := flag.String("bind", "", "specify IP to bind to")
   address := fmt.Sprintf("%s:%d", *bind, *port)
 
-  router := Router(AppRoutes())
+  router := routing.Router(AppRoutes())
 
   log.Println("Starting listening on ", address)
 

@@ -1,8 +1,6 @@
 package models
 
-import (
-  "database/sql"
-)
+import sq "github.com/Masterminds/squirrel"
 
 type Publisher struct {
   Id int `json:"id"`
@@ -13,8 +11,19 @@ type Publisher struct {
 
 type Publishers []Publisher
 
-func GetPublishers(db *sql.DB) *Publishers {
-  rows, err := db.Query(`SELECT id, name, code, state FROM publishers LIMIT 10`)
+func GetPublishers(page uint64, perPage uint64) *Publishers {
+  offset := (page - 1) * perPage
+
+  query := sq.
+    Select("id, name, code, state").
+    From("publishers").
+    Limit(perPage).
+    Offset(offset).
+    RunWith(GetDB()).
+    PlaceholderFormat(sq.Dollar)
+
+
+  rows, err := query.Query()
 
   if err != nil { panic(err) }
   defer rows.Close()

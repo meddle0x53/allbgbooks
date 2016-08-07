@@ -1,13 +1,12 @@
-package decorators
+package models
 
 import(
   "encoding/json"
   "os"
   "fmt"
-  "net/http"
-  "github.com/gorilla/context"
   "database/sql"
   _ "github.com/lib/pq"
+  sq "github.com/Masterminds/squirrel"
 )
 
 type DBCredentials struct {
@@ -60,11 +59,17 @@ func GetDB() *sql.DB {
   return db
 }
 
-func Database(inner http.Handler, name string) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    connection := GetDB()
-    context.Set(r, "dbConnection", connection)
+func Count(name string, perPage uint64) uint64 {
+  var result, delta uint64
 
-    inner.ServeHTTP(w, r)
-  })
+  query := sq.
+    Select("count(*)").
+    From(name).
+    RunWith(GetDB())
+
+  query.QueryRow().Scan(&result)
+
+  if (result % perPage) != 0 { delta = 1 }
+
+  return (result / perPage) + delta
 }

@@ -6,8 +6,8 @@ import (
 
 
 func Decorators() [](func(http.Handler, string) http.Handler) {
-  return [](func(http.Handler, string) http.Handler){
-    Logger, Database, Parameters,
+  return [](func(http.Handler, string) http.Handler) {
+    Logger,
   }
 }
 
