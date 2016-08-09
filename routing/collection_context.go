@@ -7,6 +7,7 @@ type CollectionContext struct {
   PerPage uint64
   Page uint64
   LastPage uint64
+  OrderBy string
 }
 
 type CollectionAction func(context *CollectionContext)
@@ -19,8 +20,9 @@ func NewCollectionRoute(name, method, pattern string, action CollectionAction) R
 
   collectionName := strings.ToLower(name)
 
+  sortAction := Sorting(collectionName, wrapperAction)
   return BasicRoute{
-    name, method, pattern, Pagination(collectionName, wrapperAction),
+    name, method, pattern, Pagination(collectionName, sortAction),
   }
 }
 
@@ -29,6 +31,6 @@ func ToCollectionContext(context Context) *CollectionContext {
   case *CollectionContext:
     return context.(*CollectionContext)
   default:
-    return &CollectionContext{context, 10, 1, 0}
+    return &CollectionContext{context, 10, 1, 0, "id"}
   }
 }

@@ -11,7 +11,7 @@ type Publisher struct {
 
 type Publishers []Publisher
 
-func GetPublishers(page uint64, perPage uint64) *Publishers {
+func GetPublishers(page uint64, perPage uint64, orderBy string) *Publishers {
   offset := (page - 1) * perPage
 
   query := sq.
@@ -19,6 +19,7 @@ func GetPublishers(page uint64, perPage uint64) *Publishers {
     From("publishers").
     Limit(perPage).
     Offset(offset).
+    OrderBy(orderBy).
     RunWith(GetDB()).
     PlaceholderFormat(sq.Dollar)
 

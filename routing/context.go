@@ -11,6 +11,10 @@ type Context interface {
   ResponseData() interface{}
   ResponseHeaders() map[string]string
   Status() int
+  SetStatus(int)
+  Stop() bool
+  StopExacution()
+  RespondWithError(int, string, string)
 }
 
 type BasicContext struct {
@@ -49,4 +53,24 @@ func (context *BasicContext) Status() int {
   } else {
     return context.status
   }
+}
+
+func (context *BasicContext) SetStatus(status int) {
+  context.status = status
+}
+
+func (context *BasicContext) Stop() bool {
+  return context.stop
+}
+
+func (context *BasicContext) StopExacution() {
+  context.stop = true
+}
+
+
+func (context *BasicContext) RespondWithError(status int, message, details string) {
+  context.SetStatus(status)
+
+  context.SetResponseData(Error{status, message, details})
+  context.StopExacution()
 }

@@ -59,7 +59,7 @@ func GetDB() *sql.DB {
   return db
 }
 
-func Count(name string, perPage uint64) uint64 {
+func Count(name string, perPage uint64) (uint64, uint64) {
   var result, delta uint64
 
   query := sq.
@@ -71,5 +71,9 @@ func Count(name string, perPage uint64) uint64 {
 
   if (result % perPage) != 0 { delta = 1 }
 
-  return (result / perPage) + delta
+  return result, (result / perPage) + delta
+}
+
+var CollectionFields = map[string][]string {
+  "publishers": []string{"id", "name", "code", "state",},
 }
