@@ -13,5 +13,8 @@ func AppRoutes () routing.Routes {
     routing.NewCollectionRoute(
       "Publishers", "GET", "/publishers", actions.PublishersIndexAction,
     ),
+    routing.NewResourceRoute(
+      "Publisher", "GET", "/publishers/{id}", actions.PublishersShowAction,
+    ),
   }
 }

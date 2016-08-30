@@ -1,9 +1,46 @@
 package routing
 
 import (
-  "fmt"
   "strings"
 )
+
+func getSortQuery(sortParam string) string {
+  sortData := strings.Split(sortParam, ":")
+
+  var result = ""
+
+  if len(sortData) > 0 && sortData[0] != "" {
+    result = sortData[0]
+  }
+
+  if len(sortData) > 1 && sortData[1] != "" {
+    if sortData[1] == "d" {
+      result = result + " DESC"
+    } else if sortData[1] == "a" {
+      result = result + " ASC"
+    } else {
+      // Error
+    }
+  }
+
+  return result
+}
+
+func setOrderBy(context *CollectionContext, sortParam string) {
+  var orderBy = make([]string, 0, 0)
+
+  for _, sortPart := range strings.Split(sortParam, ",") {
+    trimmedSortPart := strings.TrimSpace(sortPart)
+    query := getSortQuery(trimmedSortPart)
+    if query != "" {
+      orderBy = append(orderBy, query)
+    }
+  }
+
+  if len(orderBy) > 0 {
+    context.OrderBy = strings.Join(orderBy[:], ",")
+  }
+}
 
 func Sorting(collection string, action Action) Action {
   return func(context Context) {
@@ -11,25 +48,12 @@ func Sorting(collection string, action Action) Action {
       return
     }
 
-    sortParam := context.Request().Form.Get("sort")
-    sortData := strings.Split(sortParam, ":")
-
     newContext := ToCollectionContext(context)
-    if len(sortData) > 0 && sortData[0] != "" {
-      newContext.OrderBy = sortData[0]
-    }
 
-    if len(sortData) > 1 && sortData[1] != "" {
-      if sortData[1] == "d" {
-        newContext.OrderBy = newContext.OrderBy + " DESC"
-      } else if sortData[1] == "a" {
-        newContext.OrderBy = newContext.OrderBy + " ASC"
-      } else {
-        // Error
-      }
+    sortParam := context.Request().Form.Get("sort")
+    if sortParam != "" {
+      setOrderBy(newContext, sortParam)
     }
-
-    fmt.Println(newContext)
 
     action(newContext)
   }

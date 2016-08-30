@@ -1,6 +1,9 @@
 package routing
 
-import "strings"
+import (
+  "strings"
+  "allbooks/models"
+)
 
 type CollectionContext struct {
   Context
@@ -8,6 +11,8 @@ type CollectionContext struct {
   Page uint64
   LastPage uint64
   OrderBy string
+  FilteringValues []models.FilteringValue
+  IgnoreCase bool
 }
 
 type CollectionAction func(context *CollectionContext)
@@ -21,8 +26,9 @@ func NewCollectionRoute(name, method, pattern string, action CollectionAction) R
   collectionName := strings.ToLower(name)
 
   sortAction := Sorting(collectionName, wrapperAction)
+  paginationAction := Pagination(collectionName, sortAction)
   return BasicRoute{
-    name, method, pattern, Pagination(collectionName, sortAction),
+    name, method, pattern, Filtering(collectionName, paginationAction),
   }
 }
 
@@ -31,6 +37,8 @@ func ToCollectionContext(context Context) *CollectionContext {
   case *CollectionContext:
     return context.(*CollectionContext)
   default:
-    return &CollectionContext{context, 10, 1, 0, "id"}
+    return &CollectionContext{
+      context, 10, 1, 0, "id", make([]models.FilteringValue, 0), false,
+    }
   }
 }

@@ -5,6 +5,7 @@ import (
   "strings"
   "fmt"
   "allbooks/models"
+  "net/url"
 )
 
 const (
@@ -12,13 +13,28 @@ const (
 )
 
 func makeLink(
-  collection string, page uint64, perPage uint64, rel string,
+  collection string, context Context, page uint64, perPage uint64, rel string,
 ) string {
   strPage := strconv.FormatUint(page, 10)
   strPerPage := strconv.FormatUint(perPage, 10)
 
-  return `<` + Domain + `/` + collection + `?page=` +
-    strPage + `&perPage=` + strPerPage + `>; rel="` + rel + `"`
+  Url, err := url.Parse(Domain)
+  if err != nil { panic(err) }
+  Url.Path += collection
+  parameters := url.Values{}
+
+  for key, values := range context.Request().Form {
+    if key != "page" && key != "perPage" {
+      for _, value := range values {
+        parameters.Add(key, value)
+      }
+    }
+  }
+  parameters.Add("page", strPage)
+  parameters.Add("perPage", strPerPage)
+  Url.RawQuery = parameters.Encode()
+
+  return `<` + Url.String() + `>; rel="` + rel + `"`
 }
 
 func Pagination(collection string, action Action) Action {
@@ -27,9 +43,20 @@ func Pagination(collection string, action Action) Action {
       return
     }
 
+    newContext := ToCollectionContext(context)
+
     page := ParseIntParam(context, "page", 1)
     perPage := ParseIntParam(context, "perPage", 10)
-    count, lastPage := models.Count(collection, perPage)
+    count, lastPage := models.Count(
+      collection, perPage, newContext.FilteringValues, newContext.IgnoreCase,
+    )
+
+    if count == 0 {
+      context.RespondWithError(
+        400, "Not Found", "Nothing was found for this request.",
+      )
+      return
+    }
 
     if page > lastPage {
       message := fmt.Sprintf(
@@ -49,7 +76,6 @@ func Pagination(collection string, action Action) Action {
       return
     }
 
-    newContext := ToCollectionContext(context)
     newContext.PerPage = perPage
     newContext.Page = page
     newContext.LastPage = lastPage
@@ -59,14 +85,14 @@ func Pagination(collection string, action Action) Action {
     links := make([]string, 0, 4)
 
     if page < newContext.LastPage {
-      links = append(links, makeLink(collection, page + 1, perPage, "next"))
+      links = append(links, makeLink(collection, context, page + 1, perPage, "next"))
       links = append(
-        links, makeLink(collection, newContext.LastPage, perPage, "last"))
+        links, makeLink(collection, context, newContext.LastPage, perPage, "last"))
     }
 
     if page > 1 {
-      links = append(links, makeLink(collection, 1, perPage, "first"))
-      links = append(links, makeLink(collection, page - 1, perPage, "prev"))
+      links = append(links, makeLink(collection, context, 1, perPage, "first"))
+      links = append(links, makeLink(collection, context, page - 1, perPage, "prev"))
     }
 
     linkHeader := strings.Join(links[:], ", ")

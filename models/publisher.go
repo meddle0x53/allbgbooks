@@ -1,7 +1,5 @@
 package models
 
-import sq "github.com/Masterminds/squirrel"
-
 type Publisher struct {
   Id int `json:"id"`
   Name string `json:"name"`
@@ -11,22 +9,13 @@ type Publisher struct {
 
 type Publishers []Publisher
 
-func GetPublishers(page uint64, perPage uint64, orderBy string) *Publishers {
-  offset := (page - 1) * perPage
-
-  query := sq.
-    Select("id, name, code, state").
-    From("publishers").
-    Limit(perPage).
-    Offset(offset).
-    OrderBy(orderBy).
-    RunWith(GetDB()).
-    PlaceholderFormat(sq.Dollar)
-
-
-  rows, err := query.Query()
-
-  if err != nil { panic(err) }
+func GetPublishers(
+  page uint64, perPage uint64, orderBy string,
+  filters []FilteringValue, ignoreCase bool,
+) *Publishers {
+  rows := GetCollection(
+    "publishers", page, perPage, orderBy, filters, ignoreCase,
+  )
   defer rows.Close()
 
   result := Publishers{}

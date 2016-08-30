@@ -4,6 +4,7 @@ import(
   "encoding/json"
   "os"
   "fmt"
+  "strings"
   "database/sql"
   _ "github.com/lib/pq"
   sq "github.com/Masterminds/squirrel"
@@ -59,13 +60,35 @@ func GetDB() *sql.DB {
   return db
 }
 
-func Count(name string, perPage uint64) (uint64, uint64) {
+
+func Filter(
+  query sq.SelectBuilder, filters []FilteringValue, ignoreCase bool,
+) sq.SelectBuilder {
+  for _, filter := range filters {
+    if filter.QueryType == "LIKE" {
+      filter.Value = "%" + filter.Value + "%"
+    }
+
+    placeholder := "%s %s ?"
+    if ignoreCase {
+      placeholder = "LOWER(%s) %s LOWER(?)"
+    }
+
+    query = query.Where(
+      fmt.Sprintf(placeholder, filter.Name, filter.QueryType), filter.Value,
+    )
+  }
+
+  return query
+}
+
+func Count(
+  name string, perPage uint64, filters []FilteringValue, ignoreCase bool,
+) (uint64, uint64) {
   var result, delta uint64
 
-  query := sq.
-    Select("count(*)").
-    From(name).
-    RunWith(GetDB())
+  query := Filter(sq.Select("count(*)").From(name), filters, ignoreCase)
+  query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
 
   query.QueryRow().Scan(&result)
 
@@ -74,6 +97,46 @@ func Count(name string, perPage uint64) (uint64, uint64) {
   return result, (result / perPage) + delta
 }
 
+func GetCollection(
+  collectionName string, page uint64, perPage uint64,
+  orderBy string, filters []FilteringValue, ignoreCase bool,
+) *sql.Rows {
+  selectStatement := strings.Join(CollectionFields[collectionName], ", ")
+  offset := (page - 1) * perPage
+
+  query := sq.
+    Select(selectStatement).
+    From(collectionName).
+    Limit(perPage).
+    Offset(offset).
+    OrderBy(orderBy)
+
+  query = Filter(query, filters, ignoreCase)
+  query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
+
+  rows, err := query.Query()
+  if err != nil { panic(err) }
+
+  return rows
+}
+
 var CollectionFields = map[string][]string {
   "publishers": []string{"id", "name", "code", "state",},
+}
+
+type FilteringField struct {
+  Name string
+  QueryType string
+}
+
+type FilteringValue struct {
+  FilteringField
+  Value string
+}
+
+var FilteringFields = map[string][]FilteringField {
+  "publishers": []FilteringField{
+    FilteringField{"name", "LIKE"}, FilteringField{"code", "="},
+    FilteringField{"state", "="},
+  },
 }
