@@ -1,9 +1,15 @@
 package actions
 
 import (
-  "allbooks/routing"
+	"allbooks/models"
+	"allbooks/routing"
+	"fmt"
 )
 
 func PublishersShowAction(context *routing.ResourceContext) {
-  context.SetResponseData(make(map[string]string))
+	publisher := models.GetPublisherById(context.IdParameter)
+	fmt.Println(publisher)
+
+	context.SetResponseData(publisher)
+	context.IsEmpty = publisher.Id == 0
 }
