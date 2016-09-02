@@ -7,6 +7,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/jackc/pgx/stdlib"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -125,32 +126,67 @@ func GetCollection(
 	return rows
 }
 
-func GetResource(collectionName string, id string) sq.RowScanner {
-	selectStatement := strings.Join(CollectionFields[collectionName], ", ")
+func GetResource(collectionName, id string, joinFields []JoinField) sq.RowScanner {
+	selectFields := CollectionFields[collectionName]
+	for _, joinField := range joinFields {
+		if joinField.Type == "one" {
+			selectFields = append(selectFields, CollectionFields[joinField.Table]...)
+		}
+	}
+
+	selectStatement := strings.Join(selectFields, ", ")
 
 	query := sq.
 		Select(selectStatement).
 		From(collectionName)
 
-	orExpression := make(sq.Or, 0, len(IdFields[collectionName]))
+	idFields := make([]string, 0, len(IdFields[collectionName]))
 	for _, idField := range IdFields[collectionName] {
+		match, _ := regexp.MatchString(idField.Pattern, id)
+		if match {
+			idFields = append(idFields, idField.Name)
+		}
+	}
+
+	orExpression := make(sq.Or, 0, len(idFields))
+	for _, idField := range idFields {
+		idColumn := fmt.Sprintf("%s.%s", collectionName, idField)
 		orExpression = append(
-			orExpression, sq.Expr(fmt.Sprintf("%s = '?'", idField), id),
+			orExpression, sq.Expr(fmt.Sprintf("%s = ?", idColumn), id),
 		)
 	}
 	query = query.Where(orExpression)
+
+	for _, joinField := range joinFields {
+		if joinField.Type == "one" {
+			joinStatement := fmt.Sprintf(
+				"%s ON %s.%s = %s.%s", joinField.Table, joinField.Table,
+				joinField.TableColumn, collectionName, joinField.Column,
+			)
+			query = query.Join(joinStatement)
+		}
+	}
+
 	query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
-	fmt.Println(query.ToSql())
 
 	return query.QueryRow()
 }
 
 var CollectionFields = map[string][]string{
-	"publishers": []string{"id", "name", "code", "state"},
+	"publishers":          []string{"publishers.id", "name", "code", "state"},
+	"publisher_addresses": []string{"town", "main", "phone", "email", "site"},
+	"publisher_aliases":   []string{"name"},
 }
 
-var IdFields = map[string][]string{
-	"publishers": []string{"id", "code"},
+type IdField struct {
+	Pattern string
+	Name    string
+}
+
+var IdFields = map[string][]IdField{
+	"publishers": []IdField{
+		IdField{`^\d+$`, "id"}, IdField{`^\d+-\d+-\d+(-\d+)*$`, "code"},
+	},
 }
 
 type FilteringField struct {
@@ -167,5 +203,19 @@ var FilteringFields = map[string][]FilteringField{
 	"publishers": []FilteringField{
 		FilteringField{"name", "LIKE"}, FilteringField{"code", "="},
 		FilteringField{"state", "="}, FilteringField{"id", "="},
+	},
+}
+
+type JoinField struct {
+	Column      string
+	Table       string
+	TableColumn string
+	Type        string
+}
+
+var JoinFields = map[string]map[string]*JoinField{
+	"publishers": map[string]*JoinField{
+		"address": &JoinField{"id", "publisher_addresses", "publisher_id", "one"},
+		"aliases": &JoinField{"id", "publisher_aliases", "publisher_id", "many"},
 	},
 }

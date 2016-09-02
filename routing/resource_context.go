@@ -1,9 +1,11 @@
 package routing
 
 import (
+	"allbooks/models"
 	"fmt"
 	"github.com/acsellers/inflections"
 	"github.com/gorilla/mux"
+	"strings"
 )
 
 type ResourceContext struct {
@@ -11,6 +13,7 @@ type ResourceContext struct {
 	IncludeRelations bool
 	IdParameter      string
 	IsEmpty          bool
+	JoinFields       []models.JoinField
 }
 
 type ResourceAction func(context *ResourceContext)
@@ -37,6 +40,37 @@ func handleIdParameter(collection string, action Action) Action {
 	}
 }
 
+func JoinAction(collection string, action Action) Action {
+	return func(context Context) {
+		if context.Stop() {
+			return
+		}
+
+		newContext := ToResourceContext(context)
+		include := context.Request().Form.Get("include")
+
+		if include != "" {
+			includeFields := strings.Split(include, ",")
+
+			for _, includeField := range includeFields {
+				trimmed := strings.TrimSpace(includeField)
+				toJoin := models.JoinFields[collection][trimmed]
+				if toJoin != nil {
+					newContext.JoinFields = append(newContext.JoinFields, *toJoin)
+				} else {
+					newContext.RespondWithError(
+						422, "Unprocessable Entity",
+						fmt.Sprintf("Can't include fields for '%s'.", trimmed),
+					)
+					return
+				}
+			}
+		}
+
+		action(newContext)
+	}
+}
+
 func NewResourceRoute(name, method, pattern string, action ResourceAction) Route {
 	wrapperAction := func(context Context) {
 		resourceContext := context.(*ResourceContext)
@@ -45,8 +79,9 @@ func NewResourceRoute(name, method, pattern string, action ResourceAction) Route
 
 	collectionName := inflections.Underscore(inflections.Pluralize(name))
 	idAction := handleIdParameter(collectionName, wrapperAction)
+	joinAction := JoinAction(collectionName, idAction)
 
-	return BasicRoute{name, method, pattern, idAction}
+	return BasicRoute{name, method, pattern, joinAction}
 }
 
 func ToResourceContext(context Context) *ResourceContext {
@@ -54,6 +89,6 @@ func ToResourceContext(context Context) *ResourceContext {
 	case *ResourceContext:
 		return context.(*ResourceContext)
 	default:
-		return &ResourceContext{context, false, "", false}
+		return &ResourceContext{context, false, "", false, []models.JoinField{}}
 	}
 }
