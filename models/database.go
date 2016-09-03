@@ -173,6 +173,7 @@ var CollectionFields = map[string][]string{
 	"publishers":          []string{"publishers.id", "name", "code", "state"},
 	"publisher_addresses": []string{"town", "main", "phone", "email", "site"},
 	"publisher_aliases":   []string{"name"},
+	"publisher_contacts":  []string{"name"},
 }
 
 type IdField struct {
@@ -212,7 +213,8 @@ type JoinField struct {
 
 var JoinFields = map[string]map[string]*JoinField{
 	"publishers": map[string]*JoinField{
-		"address": &JoinField{"id", "publisher_addresses", "publisher_id", "one"},
-		"aliases": &JoinField{"id", "publisher_aliases", "publisher_id", "many"},
+		"address":  &JoinField{"id", "publisher_addresses", "publisher_id", "one"},
+		"aliases":  &JoinField{"id", "publisher_aliases", "publisher_id", "many"},
+		"contacts": &JoinField{"id", "publisher_contacts", "publisher_id", "many"},
 	},
 }

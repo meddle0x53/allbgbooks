@@ -5,12 +5,13 @@ import (
 )
 
 type Publisher struct {
-	Id      int               `json:"id"`
-	Name    string            `json:"name"`
-	Code    string            `json:"code"`
-	State   string            `json:"state"`
-	Address *PublisherAddress `json:"address,omitempty"`
-	Aliases *[]Model          `json:"aliases,omitempty"`
+	Id       int               `json:"id"`
+	Name     string            `json:"name"`
+	Code     string            `json:"code"`
+	State    string            `json:"state"`
+	Address  *PublisherAddress `json:"address,omitempty"`
+	Aliases  *[]Model          `json:"aliases,omitempty"`
+	Contacts *[]Model          `json:"contacts,omitempty"`
 }
 
 type Publishers []Publisher
@@ -62,6 +63,14 @@ func buildPublisherAliases(p *Publisher, filters []FilteringValue) {
 	p.Aliases = result
 }
 
+func buildPublisherContacts(p *Publisher, filters []FilteringValue) {
+	context := &BaseCollectionContext{100, 1, "id", filters, false}
+	rows := GetCollection("publisher_contacts", context)
+	result := CreateCollection(rows, "publisher_contacts")
+
+	p.Contacts = result
+}
+
 type JoinBuilder func(*Publisher, []interface{}) []interface{}
 
 func buildPublisherAddress(p *Publisher, fields []interface{}) []interface{} {
@@ -75,7 +84,8 @@ func buildPublisherAddress(p *Publisher, fields []interface{}) []interface{} {
 }
 
 var CollectionBuilders = map[string]func(*Publisher, []FilteringValue){
-	"publisher_aliases": buildPublisherAliases,
+	"publisher_aliases":  buildPublisherAliases,
+	"publisher_contacts": buildPublisherContacts,
 }
 
 var JoinBuilders = map[string]JoinBuilder{

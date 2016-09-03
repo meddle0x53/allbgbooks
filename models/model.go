@@ -24,6 +24,12 @@ var ModelAndFiedlsFactories = map[string]ModelAndFields{
 
 		return &publisherAlias, fields
 	},
+	"publisher_contacts": func() (Model, []interface{}) {
+		var publisherContact PublisherContact
+		fields := []interface{}{&publisherContact.Name}
+
+		return &publisherContact, fields
+	},
 }
 
 func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
