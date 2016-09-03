@@ -10,35 +10,18 @@ type Publisher struct {
 	Code    string            `json:"code"`
 	State   string            `json:"state"`
 	Address *PublisherAddress `json:"address,omitempty"`
-	Aliases *[]PublisherAlias `json:"aliases,omitempty"`
+	Aliases *[]Model          `json:"aliases,omitempty"`
 }
 
 type Publishers []Publisher
 
 func GetPublishers(
 	page uint64, perPage uint64, orderBy string,
-	filters []FilteringValue, ignoreCase bool,
-) *Publishers {
+	filters []FilteringValue, ignoreCase bool) *[]Model {
 	rows := GetCollection(
 		"publishers", page, perPage, orderBy, filters, ignoreCase,
 	)
-	defer rows.Close()
-
-	result := Publishers{}
-	for rows.Next() {
-		var publisher Publisher
-
-		err := rows.Scan(
-			&publisher.Id, &publisher.Name, &publisher.Code, &publisher.State,
-		)
-		if err != nil {
-			panic(err)
-		}
-
-		result = append(result, publisher)
-	}
-
-	return &result
+	return CreateCollection(rows, "publishers")
 }
 
 func GetPublisherById(id string, joinFields []JoinField) *Publisher {
@@ -77,21 +60,9 @@ func GetPublisherById(id string, joinFields []JoinField) *Publisher {
 
 func buildPublisherAliases(p *Publisher, filters []FilteringValue) {
 	rows := GetCollection("publisher_aliases", 1, 100, "id", filters, false)
-	defer rows.Close()
+	result := CreateCollection(rows, "publisher_aliases")
 
-	result := make([]PublisherAlias, 0)
-	for rows.Next() {
-		var publisher_alias PublisherAlias
-
-		err := rows.Scan(&publisher_alias.Name)
-		if err != nil {
-			panic(err)
-		}
-
-		result = append(result, publisher_alias)
-	}
-
-	p.Aliases = &result
+	p.Aliases = result
 }
 
 type JoinBuilder func(*Publisher, []interface{}) []interface{}
