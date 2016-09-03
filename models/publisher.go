@@ -15,12 +15,8 @@ type Publisher struct {
 
 type Publishers []Publisher
 
-func GetPublishers(
-	page uint64, perPage uint64, orderBy string,
-	filters []FilteringValue, ignoreCase bool) *[]Model {
-	rows := GetCollection(
-		"publishers", page, perPage, orderBy, filters, ignoreCase,
-	)
+func GetPublishers(context CollectionContext) *[]Model {
+	rows := GetCollection("publishers", context)
 	return CreateCollection(rows, "publishers")
 }
 
@@ -59,7 +55,8 @@ func GetPublisherById(id string, joinFields []JoinField) *Publisher {
 }
 
 func buildPublisherAliases(p *Publisher, filters []FilteringValue) {
-	rows := GetCollection("publisher_aliases", 1, 100, "id", filters, false)
+	context := &BaseCollectionContext{100, 1, "id", filters, false}
+	rows := GetCollection("publisher_aliases", context)
 	result := CreateCollection(rows, "publisher_aliases")
 
 	p.Aliases = result

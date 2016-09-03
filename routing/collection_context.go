@@ -1,44 +1,37 @@
 package routing
 
 import (
-  "strings"
-  "allbooks/models"
+	"allbooks/models"
+	"strings"
 )
 
 type CollectionContext struct {
-  Context
-  PerPage uint64
-  Page uint64
-  LastPage uint64
-  OrderBy string
-  FilteringValues []models.FilteringValue
-  IgnoreCase bool
+	Context
+	models.CollectionContext
 }
 
 type CollectionAction func(context *CollectionContext)
 
 func NewCollectionRoute(name, method, pattern string, action CollectionAction) Route {
-  wrapperAction := func(context Context) {
-    collectionContext := context.(*CollectionContext)
-    action(collectionContext)
-  }
+	wrapperAction := func(context Context) {
+		collectionContext := context.(*CollectionContext)
+		action(collectionContext)
+	}
 
-  collectionName := strings.ToLower(name)
+	collectionName := strings.ToLower(name)
 
-  sortAction := Sorting(collectionName, wrapperAction)
-  paginationAction := Pagination(collectionName, sortAction)
-  return BasicRoute{
-    name, method, pattern, Filtering(collectionName, paginationAction),
-  }
+	sortAction := Sorting(collectionName, wrapperAction)
+	paginationAction := Pagination(collectionName, sortAction)
+	return BasicRoute{
+		name, method, pattern, Filtering(collectionName, paginationAction),
+	}
 }
 
 func ToCollectionContext(context Context) *CollectionContext {
-  switch context.(type) {
-  case *CollectionContext:
-    return context.(*CollectionContext)
-  default:
-    return &CollectionContext{
-      context, 10, 1, 0, "id", make([]models.FilteringValue, 0), false,
-    }
-  }
+	switch context.(type) {
+	case *CollectionContext:
+		return context.(*CollectionContext)
+	default:
+		return &CollectionContext{context, models.NewCollectionContext()}
+	}
 }

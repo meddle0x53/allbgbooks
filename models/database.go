@@ -84,38 +84,35 @@ func Filter(
 	return query
 }
 
-func Count(
-	name string, perPage uint64, filters []FilteringValue, ignoreCase bool,
-) (uint64, uint64) {
+func Count(name string, context CollectionContext) (uint64, uint64) {
 	var result, delta uint64
 
+	filters := context.FilteringValues()
+	ignoreCase := context.IgnoreCase()
 	query := Filter(sq.Select("count(*)").From(name), filters, ignoreCase)
 	query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
 
 	query.QueryRow().Scan(&result)
 
-	if (result % perPage) != 0 {
+	if (result % context.PerPage()) != 0 {
 		delta = 1
 	}
 
-	return result, (result / perPage) + delta
+	return result, (result / context.PerPage()) + delta
 }
 
-func GetCollection(
-	collectionName string, page uint64, perPage uint64,
-	orderBy string, filters []FilteringValue, ignoreCase bool,
-) *sql.Rows {
+func GetCollection(collectionName string, context CollectionContext) *sql.Rows {
 	selectStatement := strings.Join(CollectionFields[collectionName], ", ")
-	offset := (page - 1) * perPage
+	offset := (context.Page() - 1) * context.PerPage()
 
 	query := sq.
 		Select(selectStatement).
 		From(collectionName).
-		Limit(perPage).
+		Limit(context.PerPage()).
 		Offset(offset).
-		OrderBy(orderBy)
+		OrderBy(context.OrderBy())
 
-	query = Filter(query, filters, ignoreCase)
+	query = Filter(query, context.FilteringValues(), context.IgnoreCase())
 	query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
 
 	rows, err := query.Query()
