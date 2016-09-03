@@ -6,8 +6,7 @@ import (
 )
 
 func PublishersShowAction(context *routing.ResourceContext) {
-	publisher := models.GetPublisherById(context)
+	publisher := models.CreateResource(context, "publishers")
 
 	context.SetResponseData(publisher)
-	context.SetIsEmpty(publisher.Id == 0)
 }

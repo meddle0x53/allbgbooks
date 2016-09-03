@@ -1,6 +1,7 @@
 package models
 
 type PublisherAlias struct {
+	BaseModel
 	Name string `json:"name"`
 }
 

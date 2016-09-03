@@ -1,6 +1,7 @@
 package models
 
 type PublisherContact struct {
+	BaseModel
 	Name string `json:"name"`
 }
 

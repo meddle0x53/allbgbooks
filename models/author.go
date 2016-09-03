@@ -1,6 +1,7 @@
 package models
 
 type Author struct {
+	BaseModel
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
 	Nationality string `json:"nationality"`
