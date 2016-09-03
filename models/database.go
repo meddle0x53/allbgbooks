@@ -174,6 +174,7 @@ var CollectionFields = map[string][]string{
 	"publisher_addresses": []string{"town", "main", "phone", "email", "site"},
 	"publisher_aliases":   []string{"name"},
 	"publisher_contacts":  []string{"name"},
+	"authors":             []string{"id", "name", "nationality"},
 }
 
 type IdField struct {
@@ -185,6 +186,7 @@ var IdFields = map[string][]IdField{
 	"publishers": []IdField{
 		IdField{`^\d+$`, "id"}, IdField{`^\d+-\d+-\d+(-\d+)*$`, "code"},
 	},
+	"authors": []IdField{IdField{`^\d+$`, "id"}},
 }
 
 type FilteringField struct {
@@ -201,6 +203,9 @@ var FilteringFields = map[string][]FilteringField{
 	"publishers": []FilteringField{
 		FilteringField{"name", "LIKE"}, FilteringField{"code", "="},
 		FilteringField{"state", "="}, FilteringField{"id", "="},
+	},
+	"authors": []FilteringField{
+		FilteringField{"name", "LIKE"}, FilteringField{"nationality", "="},
 	},
 }
 

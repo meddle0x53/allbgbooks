@@ -14,11 +14,8 @@ type Publisher struct {
 	Contacts *[]Model          `json:"contacts,omitempty"`
 }
 
-type Publishers []Publisher
-
 func GetPublishers(context CollectionContext) *[]Model {
-	rows := GetCollection("publishers", context)
-	return CreateCollection(rows, "publishers")
+	return CreateCollection(GetCollection("publishers", context), "publishers")
 }
 
 func GetPublisherById(id string, joinFields []JoinField) *Publisher {
