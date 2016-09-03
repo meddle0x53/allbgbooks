@@ -14,6 +14,12 @@ type Publisher struct {
 	Contacts *[]Model          `json:"contacts,omitempty"`
 }
 
+func (publisher *Publisher) Fields() []interface{} {
+	return []interface{}{
+		&publisher.Id, &publisher.Name, &publisher.Code, &publisher.State,
+	}
+}
+
 func GetPublishers(context CollectionContext) *[]Model {
 	return CreateCollection(GetCollection("publishers", context), "publishers")
 }

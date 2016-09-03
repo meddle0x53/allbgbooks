@@ -2,41 +2,35 @@ package models
 
 import (
 	"database/sql"
+	//	sq "github.com/Masterminds/squirrel"
 )
 
-type Model interface{}
-type Models []Model
+type Model interface {
+	Fields() []interface{}
+}
 
-type ModelAndFields func() (Model, []interface{})
+type ModelFactory func() Model
 
-var ModelAndFiedlsFactories = map[string]ModelAndFields{
-	"publishers": func() (Model, []interface{}) {
+var ModelFactories = map[string]ModelFactory{
+	"publishers": func() Model {
 		var publisher Publisher
-		fields := []interface{}{
-			&publisher.Id, &publisher.Name, &publisher.Code, &publisher.State,
-		}
 
-		return &publisher, fields
+		return &publisher
 	},
-	"publisher_aliases": func() (Model, []interface{}) {
+	"publisher_aliases": func() Model {
 		var publisherAlias PublisherAlias
-		fields := []interface{}{&publisherAlias.Name}
 
-		return &publisherAlias, fields
+		return &publisherAlias
 	},
-	"publisher_contacts": func() (Model, []interface{}) {
+	"publisher_contacts": func() Model {
 		var publisherContact PublisherContact
-		fields := []interface{}{&publisherContact.Name}
 
-		return &publisherContact, fields
+		return &publisherContact
 	},
-	"authors": func() (Model, []interface{}) {
+	"authors": func() Model {
 		var author Author
-		fields := []interface{}{
-			&author.Id, &author.Name, &author.Nationality,
-		}
 
-		return &author, fields
+		return &author
 	},
 }
 
@@ -45,7 +39,8 @@ func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
 
 	result := []Model{}
 	for rows.Next() {
-		model, fields := ModelAndFiedlsFactories[collectionName]()
+		model := ModelFactories[collectionName]()
+		fields := model.Fields()
 
 		err := rows.Scan(fields...)
 		if err != nil {
@@ -57,3 +52,18 @@ func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
 
 	return &result
 }
+
+//func CreateResource(context ResourceContext, row sq.RowScanner, collectionName string) Model {
+//	model, fields := ModelFactories[collectionName]()
+//	joinFields := context.JoinFields()
+//
+//	for _, joinField := range joinFields {
+//		if joinField.Type == "one" {
+//			builder := JoinBuilders[joinField.Table]
+//
+//			fields = builder(model, fields)
+//		}
+//	}
+//
+//	return model
+//}
