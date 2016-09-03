@@ -18,12 +18,13 @@ func GetPublishers(context CollectionContext) *[]Model {
 	return CreateCollection(GetCollection("publishers", context), "publishers")
 }
 
-func GetPublisherById(id string, joinFields []JoinField) *Publisher {
+func GetPublisherById(context ResourceContext) *Publisher {
 	var publisher Publisher
 
 	fields := []interface{}{
 		&publisher.Id, &publisher.Name, &publisher.Code, &publisher.State,
 	}
+	joinFields := context.JoinFields()
 
 	for _, joinField := range joinFields {
 		if joinField.Type == "one" {
@@ -33,7 +34,7 @@ func GetPublisherById(id string, joinFields []JoinField) *Publisher {
 		}
 	}
 
-	GetResource("publishers", id, joinFields).Scan(fields...)
+	GetResource("publishers", context).Scan(fields...)
 
 	for _, joinField := range joinFields {
 		if joinField.Type == "many" {

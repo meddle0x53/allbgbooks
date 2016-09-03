@@ -10,10 +10,7 @@ import (
 
 type ResourceContext struct {
 	Context
-	IncludeRelations bool
-	IdParameter      string
-	IsEmpty          bool
-	JoinFields       []models.JoinField
+	models.ResourceContext
 }
 
 type ResourceAction func(context *ResourceContext)
@@ -26,11 +23,12 @@ func handleIdParameter(collection string, action Action) Action {
 
 		vars := mux.Vars(context.Request())
 		newContext := ToResourceContext(context)
-		newContext.IdParameter = vars["id"]
+		idValue := vars["id"]
+		newContext.SetIdParameter(&idValue)
 
 		action(newContext)
 
-		if newContext.IsEmpty {
+		if newContext.IsEmpty() {
 			newContext.RespondWithError(
 				404, "Not Found", fmt.Sprintf(
 					"There is no record in %s identified by %s.", collection, vars["id"],
@@ -56,7 +54,7 @@ func JoinAction(collection string, action Action) Action {
 				trimmed := strings.TrimSpace(includeField)
 				toJoin := models.JoinFields[collection][trimmed]
 				if toJoin != nil {
-					newContext.JoinFields = append(newContext.JoinFields, *toJoin)
+					newContext.SetJoinFields(append(newContext.JoinFields(), *toJoin))
 				} else {
 					newContext.RespondWithError(
 						422, "Unprocessable Entity",
@@ -89,6 +87,6 @@ func ToResourceContext(context Context) *ResourceContext {
 	case *ResourceContext:
 		return context.(*ResourceContext)
 	default:
-		return &ResourceContext{context, false, "", false, []models.JoinField{}}
+		return &ResourceContext{context, models.NewResourceContext()}
 	}
 }

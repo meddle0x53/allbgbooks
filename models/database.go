@@ -123,8 +123,9 @@ func GetCollection(collectionName string, context CollectionContext) *sql.Rows {
 	return rows
 }
 
-func GetResource(collectionName, id string, joinFields []JoinField) sq.RowScanner {
+func GetResource(collectionName string, context ResourceContext) sq.RowScanner {
 	selectFields := CollectionFields[collectionName]
+	joinFields := context.JoinFields()
 	for _, joinField := range joinFields {
 		if joinField.Type == "one" {
 			selectFields = append(selectFields, CollectionFields[joinField.Table]...)
@@ -137,6 +138,7 @@ func GetResource(collectionName, id string, joinFields []JoinField) sq.RowScanne
 		Select(selectStatement).
 		From(collectionName)
 
+	id := *context.IdParameter()
 	idFields := make([]string, 0, len(IdFields[collectionName]))
 	for _, idField := range IdFields[collectionName] {
 		match, _ := regexp.MatchString(idField.Pattern, id)

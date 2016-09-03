@@ -6,8 +6,8 @@ import (
 )
 
 func PublishersShowAction(context *routing.ResourceContext) {
-	publisher := models.GetPublisherById(context.IdParameter, context.JoinFields)
+	publisher := models.GetPublisherById(context)
 
 	context.SetResponseData(publisher)
-	context.IsEmpty = publisher.Id == 0
+	context.SetIsEmpty(publisher.Id == 0)
 }

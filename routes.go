@@ -19,5 +19,8 @@ func AppRoutes() routing.Routes {
 		routing.NewCollectionRoute(
 			"Authors", "GET", "/authors", actions.AuthorsIndexAction,
 		),
+		routing.NewResourceRoute(
+			"Author", "GET", "/authors/{id}", actions.AuthorsShowAction,
+		),
 	}
 }
