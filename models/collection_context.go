@@ -15,12 +15,12 @@ type CollectionContext interface {
 }
 
 type BaseCollectionContext struct {
+	Context
 	PerPageValue         uint64
 	PageValue            uint64
 	OrderByValue         string
 	FilteringValuesValue []FilteringValue
 	IgnoreCaseValue      bool
-	CollectionNameValue  *string
 }
 
 func (c *BaseCollectionContext) PerPage() uint64 {
@@ -63,14 +63,8 @@ func (c *BaseCollectionContext) SetIgnoreCase(value bool) {
 	c.IgnoreCaseValue = value
 }
 
-func (c *BaseCollectionContext) CollectionName() string {
-	return *c.CollectionNameValue
-}
-
-func (c *BaseCollectionContext) SetCollectionName(value string) {
-	c.CollectionNameValue = &value
-}
-
 func NewCollectionContext() CollectionContext {
-	return &BaseCollectionContext{10, 1, "id", []FilteringValue{}, false, nil}
+	return &BaseCollectionContext{
+		NewContext(), 10, 1, "id", []FilteringValue{}, false,
+	}
 }

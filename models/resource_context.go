@@ -11,10 +11,10 @@ type ResourceContext interface {
 }
 
 type BaseResourceContext struct {
-	idParameter    *string
-	isEmpty        bool
-	joinFields     []JoinField
-	collectionName *string
+	Context
+	idParameter *string
+	isEmpty     bool
+	joinFields  []JoinField
 }
 
 func (c *BaseResourceContext) IdParameter() *string {
@@ -41,14 +41,6 @@ func (c *BaseResourceContext) SetJoinFields(value []JoinField) {
 	c.joinFields = value
 }
 
-func (c *BaseResourceContext) CollectionName() string {
-	return *c.collectionName
-}
-
-func (c *BaseResourceContext) SetCollectionName(value string) {
-	c.collectionName = &value
-}
-
 func NewResourceContext() ResourceContext {
-	return &BaseResourceContext{nil, false, []JoinField{}, nil}
+	return &BaseResourceContext{NewContext(), nil, false, []JoinField{}}
 }
