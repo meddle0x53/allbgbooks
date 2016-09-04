@@ -23,7 +23,6 @@ func (publisher *Publisher) Fields() []interface{} {
 
 func (publisher *Publisher) Identifier() string {
 	return strconv.Itoa(publisher.Id)
-
 }
 
 func (publisher *Publisher) IsEmpty() bool {
