@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	_ "github.com/jackc/pgx/stdlib"
 	"os"
 	"regexp"
 	"strings"
