@@ -1,6 +1,7 @@
 package models
 
 type CollectionContext interface {
+	Context
 	PerPage() uint64
 	SetPerPage(uint64)
 	Page() uint64
@@ -11,8 +12,6 @@ type CollectionContext interface {
 	SetFilteringValues([]FilteringValue)
 	IgnoreCase() bool
 	SetIgnoreCase(bool)
-	CollectionName() string
-	SetCollectionName(string)
 }
 
 type BaseCollectionContext struct {

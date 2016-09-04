@@ -15,7 +15,7 @@ type ResourceContext struct {
 
 type ResourceAction func(context *ResourceContext)
 
-func handleIdParameter(collection string, action Action) Action {
+func handleIdParameter(action Action) Action {
 	return func(context Context) {
 		if context.Stop() {
 			return
@@ -29,6 +29,7 @@ func handleIdParameter(collection string, action Action) Action {
 		action(newContext)
 
 		if newContext.IsEmpty() {
+			collection := newContext.CollectionName()
 			newContext.RespondWithError(
 				404, "Not Found", fmt.Sprintf(
 					"There is no record in %s identified by %s.", collection, vars["id"],
@@ -38,7 +39,7 @@ func handleIdParameter(collection string, action Action) Action {
 	}
 }
 
-func JoinAction(collection string, action Action) Action {
+func JoinAction(action Action) Action {
 	return func(context Context) {
 		if context.Stop() {
 			return
@@ -52,7 +53,7 @@ func JoinAction(collection string, action Action) Action {
 
 			for _, includeField := range includeFields {
 				trimmed := strings.TrimSpace(includeField)
-				toJoin := models.JoinFields[collection][trimmed]
+				toJoin := models.JoinFields[newContext.CollectionName()][trimmed]
 				if toJoin != nil {
 					newContext.SetJoinFields(append(newContext.JoinFields(), *toJoin))
 				} else {
@@ -76,10 +77,19 @@ func NewResourceRoute(name, method, pattern string, action ResourceAction) Route
 	}
 
 	collectionName := inflections.Underscore(inflections.Pluralize(name))
-	idAction := handleIdParameter(collectionName, wrapperAction)
-	joinAction := JoinAction(collectionName, idAction)
+	setCollectionName := func(action Action) Action {
+		return func(context Context) {
+			resourceContext := ToResourceContext(context)
+			resourceContext.SetCollectionName(collectionName)
 
-	return BasicRoute{name, method, pattern, joinAction}
+			action(resourceContext)
+		}
+	}
+
+	idAction := handleIdParameter(wrapperAction)
+	joinAction := JoinAction(idAction)
+
+	return BasicRoute{name, method, pattern, setCollectionName(joinAction)}
 }
 
 func ToResourceContext(context Context) *ResourceContext {

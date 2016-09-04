@@ -107,7 +107,8 @@ func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
 	return &result
 }
 
-func CreateResource(context ResourceContext, collectionName string) Model {
+func CreateResource(context ResourceContext) Model {
+	collectionName := context.CollectionName()
 	model := ModelFactories[collectionName]()
 	fields := model.Fields()
 	joinFields := context.JoinFields()

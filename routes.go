@@ -14,13 +14,13 @@ func AppRoutes() routing.Routes {
 			"Publishers", "GET", "/publishers", actions.CollectionIndexAction,
 		),
 		routing.NewResourceRoute(
-			"Publisher", "GET", "/publishers/{id}", actions.PublishersShowAction,
+			"Publisher", "GET", "/publishers/{id}", actions.CollectionShowAction,
 		),
 		routing.NewCollectionRoute(
 			"Authors", "GET", "/authors", actions.CollectionIndexAction,
 		),
 		routing.NewResourceRoute(
-			"Author", "GET", "/authors/{id}", actions.AuthorsShowAction,
+			"Author", "GET", "/authors/{id}", actions.CollectionShowAction,
 		),
 	}
 }
