@@ -19,11 +19,20 @@ func NewCollectionRoute(name, method, pattern string, action CollectionAction) R
 	}
 
 	collectionName := strings.ToLower(name)
+	setCollectionName := func(action Action) Action {
+		return func(context Context) {
+			collectionContext := ToCollectionContext(context)
+			collectionContext.SetCollectionName(collectionName)
 
-	sortAction := Sorting(collectionName, wrapperAction)
-	paginationAction := Pagination(collectionName, sortAction)
+			action(collectionContext)
+		}
+	}
+
+	sortAction := Sorting(wrapperAction)
+	paginationAction := Pagination(sortAction)
+	filteringAction := Filtering(paginationAction)
 	return BasicRoute{
-		name, method, pattern, Filtering(collectionName, paginationAction),
+		name, method, pattern, setCollectionName(filteringAction),
 	}
 }
 

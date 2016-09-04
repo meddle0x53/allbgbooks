@@ -84,11 +84,13 @@ func Filter(
 	return query
 }
 
-func Count(name string, context CollectionContext) (uint64, uint64) {
+func Count(context CollectionContext) (uint64, uint64) {
 	var result, delta uint64
 
 	filters := context.FilteringValues()
 	ignoreCase := context.IgnoreCase()
+	name := context.CollectionName()
+
 	query := Filter(sq.Select("count(*)").From(name), filters, ignoreCase)
 	query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
 

@@ -13,7 +13,7 @@ const (
 )
 
 func makeLink(
-	collection string, context Context, page uint64, perPage uint64, rel string,
+	context *CollectionContext, page uint64, perPage uint64, rel string,
 ) string {
 	strPage := strconv.FormatUint(page, 10)
 	strPerPage := strconv.FormatUint(perPage, 10)
@@ -22,7 +22,7 @@ func makeLink(
 	if err != nil {
 		panic(err)
 	}
-	Url.Path += collection
+	Url.Path += context.CollectionName()
 	parameters := url.Values{}
 
 	for key, values := range context.Request().Form {
@@ -39,7 +39,7 @@ func makeLink(
 	return `<` + Url.String() + `>; rel="` + rel + `"`
 }
 
-func Pagination(collection string, action Action) Action {
+func Pagination(action Action) Action {
 	return func(context Context) {
 		if context.Stop() {
 			return
@@ -53,7 +53,7 @@ func Pagination(collection string, action Action) Action {
 		newContext.SetPerPage(perPage)
 		newContext.SetPage(page)
 
-		count, lastPage := models.Count(collection, newContext)
+		count, lastPage := models.Count(newContext)
 
 		if count == 0 {
 			context.RespondWithError(
@@ -85,14 +85,14 @@ func Pagination(collection string, action Action) Action {
 		links := make([]string, 0, 4)
 
 		if page < lastPage {
-			links = append(links, makeLink(collection, context, page+1, perPage, "next"))
+			links = append(links, makeLink(newContext, page+1, perPage, "next"))
 			links = append(
-				links, makeLink(collection, context, lastPage, perPage, "last"))
+				links, makeLink(newContext, lastPage, perPage, "last"))
 		}
 
 		if page > 1 {
-			links = append(links, makeLink(collection, context, 1, perPage, "first"))
-			links = append(links, makeLink(collection, context, page-1, perPage, "prev"))
+			links = append(links, makeLink(newContext, 1, perPage, "first"))
+			links = append(links, makeLink(newContext, page-1, perPage, "prev"))
 		}
 
 		linkHeader := strings.Join(links[:], ", ")

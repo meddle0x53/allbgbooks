@@ -42,7 +42,7 @@ func setOrderBy(context *CollectionContext, sortParam string) {
 	}
 }
 
-func Sorting(collection string, action Action) Action {
+func Sorting(action Action) Action {
 	return func(context Context) {
 		if context.Stop() {
 			return

@@ -4,7 +4,7 @@ import (
 	"allbooks/models"
 )
 
-func Filtering(collection string, action Action) Action {
+func Filtering(action Action) Action {
 	return func(context Context) {
 		if context.Stop() {
 			return
@@ -12,7 +12,7 @@ func Filtering(collection string, action Action) Action {
 
 		newContext := ToCollectionContext(context)
 
-		fields := models.FilteringFields[collection]
+		fields := models.FilteringFields[newContext.CollectionName()]
 
 		ignoreCase := context.Request().Form.Get("ignoreCase")
 		newContext.SetIgnoreCase(ignoreCase == "true")
