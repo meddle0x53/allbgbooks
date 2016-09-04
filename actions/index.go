@@ -1,13 +1,13 @@
 package actions
 
 import (
-  "allbooks/routing"
+	"allbooks/routing"
 )
 
 func IndexAction(context routing.Context) {
-  data := map[string]string{
-    "publishersUrl": routing.Domain + "/publishers",
-  }
+	data := map[string]string{
+		"publishersUrl": routing.Domain + "/publishers",
+	}
 
-  context.SetResponseData(data)
+	context.SetResponseData(data)
 }

@@ -26,7 +26,3 @@ func (publisher *Publisher) SetRelation(name string, collection *[]Model) {
 		publisher.Contacts = collection
 	}
 }
-
-func GetPublishers(context CollectionContext) *[]Model {
-	return CreateCollection(GetCollection("publishers", context), "publishers")
-}
