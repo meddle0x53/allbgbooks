@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strconv"
 )
 
 type Model interface {
@@ -35,7 +36,7 @@ func (BaseModel) Identifier() string {
 	return ""
 }
 
-func (BaseModel) IsEmpty() bool {
+func (m *BaseModel) IsEmpty() bool {
 	return true
 }
 
@@ -43,6 +44,19 @@ func (BaseModel) AppendCollection(name string, filters []FilteringValue) *[]Mode
 	context := &BaseCollectionContext{100, 1, "id", filters, false}
 	rows := GetCollection(name, context)
 	return CreateCollection(rows, name)
+}
+
+type ModelWithId struct {
+	BaseModel
+	Id int `json:"id"`
+}
+
+func (model *ModelWithId) Identifier() string {
+	return strconv.Itoa(model.Id)
+}
+
+func (model *ModelWithId) IsEmpty() bool {
+	return model.Id <= 0
 }
 
 type ModelFactory func() Model

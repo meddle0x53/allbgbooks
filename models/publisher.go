@@ -1,12 +1,7 @@
 package models
 
-import (
-	"strconv"
-)
-
 type Publisher struct {
-	BaseModel
-	Id       int      `json:"id"`
+	ModelWithId
 	Name     string   `json:"name"`
 	Code     string   `json:"code"`
 	State    string   `json:"state"`
@@ -19,14 +14,6 @@ func (publisher *Publisher) Fields() []interface{} {
 	return []interface{}{
 		&publisher.Id, &publisher.Name, &publisher.Code, &publisher.State,
 	}
-}
-
-func (publisher *Publisher) Identifier() string {
-	return strconv.Itoa(publisher.Id)
-}
-
-func (publisher *Publisher) IsEmpty() bool {
-	return publisher.Id <= 0
 }
 
 func (publisher *Publisher) SetRelation(name string, collection *[]Model) {
