@@ -7,7 +7,6 @@ import (
 
 func CollectionIndexAction(context *routing.CollectionContext) {
 	name := context.CollectionName()
-	collection := models.CreateCollection(
-		models.GetCollection(name, context), name)
+	collection := models.CreateCollection(models.GetCollection(context), name)
 	context.SetResponseData(collection)
 }

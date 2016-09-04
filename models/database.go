@@ -103,7 +103,8 @@ func Count(context CollectionContext) (uint64, uint64) {
 	return result, (result / context.PerPage()) + delta
 }
 
-func GetCollection(collectionName string, context CollectionContext) *sql.Rows {
+func GetCollection(context CollectionContext) *sql.Rows {
+	collectionName := context.CollectionName()
 	selectStatement := strings.Join(CollectionFields[collectionName], ", ")
 	offset := (context.Page() - 1) * context.PerPage()
 

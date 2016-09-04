@@ -42,8 +42,7 @@ func (m *BaseModel) IsEmpty() bool {
 
 func (BaseModel) AppendCollection(name string, filters []FilteringValue) *[]Model {
 	context := &BaseCollectionContext{100, 1, "id", filters, false, &name}
-	rows := GetCollection(name, context)
-	return CreateCollection(rows, name)
+	return CreateCollection(GetCollection(context), name)
 }
 
 type ModelWithId struct {
