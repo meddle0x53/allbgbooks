@@ -87,6 +87,21 @@ var ModelFactories = map[string]ModelFactory{
 
 		return &author
 	},
+	"books": func() Model {
+		var book Book
+
+		return &book
+	},
+	"languages": func() Model {
+		var language Language
+
+		return &language
+	},
+	"genres": func() Model {
+		var genre Genre
+
+		return &genre
+	},
 }
 
 func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
@@ -122,7 +137,11 @@ func CreateResource(context ResourceContext) Model {
 		}
 	}
 
-	GetResource(collectionName, context).Scan(fields...)
+	err := GetResource(collectionName, context).Scan(fields...)
+	if err != nil {
+		panic(err)
+	}
+
 	context.SetIsEmpty(model.IsEmpty())
 
 	for _, joinField := range joinFields {

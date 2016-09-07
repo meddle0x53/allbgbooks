@@ -174,11 +174,16 @@ func GetResource(collectionName string, context ResourceContext) sq.RowScanner {
 }
 
 var CollectionFields = map[string][]string{
-	"publishers":          []string{"publishers.id", "name", "code", "state"},
+	"publishers":          []string{"publishers.id", "publishers.name", "code", "state"},
 	"publisher_addresses": []string{"town", "main", "phone", "email", "site"},
 	"publisher_aliases":   []string{"name"},
 	"publisher_contacts":  []string{"name"},
+	"languages":           []string{"languages.name"},
+	"genres":              []string{"genres.name"},
 	"authors":             []string{"id", "name", "nationality"},
+	"books": []string{
+		"books.id", "isbn", "title", "cover", "issue", "description", "copies",
+	},
 }
 
 type IdField struct {
@@ -191,6 +196,9 @@ var IdFields = map[string][]IdField{
 		IdField{`^\d+$`, "id"}, IdField{`^\d+-\d+-\d+(-\d+)*$`, "code"},
 	},
 	"authors": []IdField{IdField{`^\d+$`, "id"}},
+	"books": []IdField{
+		IdField{`^\d+$`, "id"}, IdField{`^\d+-\d+-\d+(-\d+)*$`, "isbn"},
+	},
 }
 
 type FilteringField struct {
@@ -211,6 +219,9 @@ var FilteringFields = map[string][]FilteringField{
 	"authors": []FilteringField{
 		FilteringField{"name", "LIKE"}, FilteringField{"nationality", "="},
 	},
+	"books": []FilteringField{
+		FilteringField{"isbn", "="}, FilteringField{"title", "LIKE"},
+	},
 }
 
 type JoinField struct {
@@ -225,5 +236,10 @@ var JoinFields = map[string]map[string]*JoinField{
 		"address":  &JoinField{"id", "publisher_addresses", "publisher_id", "one"},
 		"aliases":  &JoinField{"id", "publisher_aliases", "publisher_id", "many"},
 		"contacts": &JoinField{"id", "publisher_contacts", "publisher_id", "many"},
+	},
+	"books": map[string]*JoinField{
+		"publisher": &JoinField{"publisher_id", "publishers", "id", "one"},
+		"language":  &JoinField{"language_id", "languages", "id", "one"},
+		"genre":     &JoinField{"genre_id", "genres", "id", "one"},
 	},
 }

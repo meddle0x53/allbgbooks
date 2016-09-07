@@ -22,5 +22,11 @@ func AppRoutes() routing.Routes {
 		routing.NewResourceRoute(
 			"Author", "GET", "/authors/{id}", actions.CollectionShowAction,
 		),
+		routing.NewCollectionRoute(
+			"Books", "GET", "/books", actions.CollectionIndexAction,
+		),
+		routing.NewResourceRoute(
+			"Book", "GET", "/books/{id}", actions.CollectionShowAction,
+		),
 	}
 }
