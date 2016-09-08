@@ -125,6 +125,27 @@ func GetCollection(context CollectionContext) *sql.Rows {
 	return rows
 }
 
+func GetCollectionThroughRelation(field JoinField, id string) *sql.Rows {
+	selectStatement := strings.Join(CollectionFields[field.Table], ", ")
+
+	query := sq.
+		Select(selectStatement).
+		From(field.Table).
+		Where(fmt.Sprintf(
+			"id IN (SELECT %s FROM %s WHERE %s = ?)", field.TableColumn, field.Type,
+			field.Column,
+		), id)
+
+	query = query.RunWith(GetDB()).PlaceholderFormat(sq.Dollar)
+
+	rows, err := query.Query()
+	if err != nil {
+		panic(err)
+	}
+
+	return rows
+}
+
 func GetResource(collectionName string, context ResourceContext) sq.RowScanner {
 	selectFields := CollectionFields[collectionName]
 	joinFields := context.JoinFields()
@@ -180,9 +201,11 @@ var CollectionFields = map[string][]string{
 	"publisher_contacts":  []string{"name"},
 	"languages":           []string{"languages.name"},
 	"genres":              []string{"genres.name"},
+	"categories":          []string{"categories.name"},
 	"authors":             []string{"id", "name", "nationality"},
 	"books": []string{
 		"books.id", "isbn", "title", "cover", "issue", "description", "copies",
+		"price", "publish_date",
 	},
 }
 
@@ -241,5 +264,7 @@ var JoinFields = map[string]map[string]*JoinField{
 		"publisher": &JoinField{"publisher_id", "publishers", "id", "one"},
 		"language":  &JoinField{"language_id", "languages", "id", "one"},
 		"genre":     &JoinField{"genre_id", "genres", "id", "one"},
+		"category":  &JoinField{"category_id", "categories", "id", "one"},
+		"authors":   &JoinField{"book_id", "authors", "author_id", "books_authors"},
 	},
 }

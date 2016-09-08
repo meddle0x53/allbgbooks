@@ -102,6 +102,11 @@ var ModelFactories = map[string]ModelFactory{
 
 		return &genre
 	},
+	"categories": func() Model {
+		var category Category
+
+		return &category
+	},
 }
 
 func CreateCollection(rows *sql.Rows, collectionName string) *[]Model {
@@ -153,6 +158,11 @@ func CreateResource(context ResourceContext) Model {
 			}
 
 			collection := model.AppendCollection(joinField.Table, filters)
+			model.SetRelation(joinField.Table, collection)
+		} else if joinField.Type != "one" {
+			collection := CreateCollection(GetCollectionThroughRelation(
+				joinField, model.Identifier()), joinField.Table,
+			)
 			model.SetRelation(joinField.Table, collection)
 		}
 	}
